@@ -11,21 +11,21 @@ public class DashboardPage : UserControl
     {
         DoubleBuffered = true;
         BackColor = Color.FromArgb(245, 247, 250);
-        Padding = new Padding(10);
+        AutoScroll = true;
+        Padding = new Padding(15);
 
-        var scrollPanel = new Panel
+        var mainPanel = new Panel
         {
-            Dock = DockStyle.Fill,
-            AutoScroll = true,
+            Dock = DockStyle.Top,
+            AutoSize = true,
             BackColor = Color.Transparent
         };
 
-        var contentPanel = new Panel
+        var headerPanel = new Panel
         {
-            Width = 1000,
-            AutoSize = true,
-            Left = 0,
-            Top = 0
+            Dock = DockStyle.Top,
+            Height = 60,
+            BackColor = Color.Transparent
         };
 
         var titleLabel = new Label
@@ -34,9 +34,10 @@ public class DashboardPage : UserControl
             Font = new Font("Microsoft YaHei UI", 20f, FontStyle.Bold),
             ForeColor = Color.FromArgb(44, 62, 80),
             AutoSize = true,
-            Location = new Point(0, 0)
+            Location = new Point(5, 5),
+            BackColor = Color.Transparent
         };
-        contentPanel.Controls.Add(titleLabel);
+        headerPanel.Controls.Add(titleLabel);
 
         var subtitleLabel = new Label
         {
@@ -44,34 +45,36 @@ public class DashboardPage : UserControl
             Font = new Font("Microsoft YaHei UI", 10f),
             ForeColor = Color.FromArgb(127, 140, 141),
             AutoSize = true,
-            Location = new Point(0, 40)
+            Location = new Point(5, 38),
+            BackColor = Color.Transparent
         };
-        contentPanel.Controls.Add(subtitleLabel);
+        headerPanel.Controls.Add(subtitleLabel);
+
+        mainPanel.Controls.Add(headerPanel);
 
         var statsPanel = new FlowLayoutPanel
         {
-            Top = 80,
-            Left = 0,
-            Width = 1000,
-            Height = 120,
+            Dock = DockStyle.Top,
+            Height = 110,
             FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
-            BackColor = Color.Transparent
+            WrapContents = true,
+            BackColor = Color.Transparent,
+            Padding = new Padding(0, 10, 0, 0)
         };
 
         statsPanel.Controls.Add(CreateStatCard("化合物", "1,234", "个", Color.FromArgb(52, 152, 219)));
         statsPanel.Controls.Add(CreateStatCard("蛋白质", "86", "个", Color.FromArgb(46, 204, 113)));
         statsPanel.Controls.Add(CreateStatCard("活性数据", "5,678", "条", Color.FromArgb(230, 126, 34)));
         statsPanel.Controls.Add(CreateStatCard("计算任务", "23", "个", Color.FromArgb(155, 89, 182)));
-        contentPanel.Controls.Add(statsPanel);
+
+        mainPanel.Controls.Add(statsPanel);
 
         var chartsPanel = new Panel
         {
-            Top = 220,
-            Left = 0,
-            Width = 1000,
-            Height = 350,
-            BackColor = Color.Transparent
+            Dock = DockStyle.Top,
+            Height = 360,
+            BackColor = Color.Transparent,
+            Padding = new Padding(0, 15, 0, 0)
         };
 
         var leftChart = CreateCard("最近任务状态", 0, 0, 480, 340);
@@ -82,14 +85,22 @@ public class DashboardPage : UserControl
         FillTaskStatusChart(leftChart);
         FillActivityDistributionChart(rightChart);
 
-        contentPanel.Controls.Add(chartsPanel);
+        mainPanel.Controls.Add(chartsPanel);
 
-        var recentPanel = CreateCard("最近计算任务", 0, 590, 980, 300);
+        var recentPanel = CreateCard("最近计算任务", 0, 0, 980, 310);
         FillRecentTasks(recentPanel);
-        contentPanel.Controls.Add(recentPanel);
 
-        scrollPanel.Controls.Add(contentPanel);
-        Controls.Add(scrollPanel);
+        var recentWrapper = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 320,
+            BackColor = Color.Transparent,
+            Padding = new Padding(0, 15, 0, 0)
+        };
+        recentWrapper.Controls.Add(recentPanel);
+        mainPanel.Controls.Add(recentWrapper);
+
+        Controls.Add(mainPanel);
     }
 
     private static Panel CreateStatCard(string label, string value, string unit, Color color)
@@ -100,7 +111,7 @@ public class DashboardPage : UserControl
             Height = 100,
             BackColor = Color.White,
             Padding = new Padding(15),
-            Margin = new Padding(0, 0, 20, 0)
+            Margin = new Padding(0, 0, 15, 10)
         };
 
         var colorBar = new Panel
@@ -111,7 +122,11 @@ public class DashboardPage : UserControl
         };
         card.Controls.Add(colorBar);
 
-        var labelPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10, 5, 0, 0) };
+        var contentPanel = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(12, 8, 0, 0)
+        };
 
         var labelCtrl = new Label
         {
@@ -119,16 +134,18 @@ public class DashboardPage : UserControl
             Font = new Font("Microsoft YaHei UI", 9f),
             ForeColor = Color.FromArgb(127, 140, 141),
             AutoSize = true,
-            Location = new Point(10, 5)
+            Location = new Point(12, 8),
+            BackColor = Color.Transparent
         };
 
         var valueLabel = new Label
         {
             Text = value,
-            Font = new Font("Microsoft YaHei UI", 28f, FontStyle.Bold),
+            Font = new Font("Microsoft YaHei UI", 24f, FontStyle.Bold),
             ForeColor = color,
             AutoSize = true,
-            Location = new Point(10, 30)
+            Location = new Point(12, 28),
+            BackColor = Color.Transparent
         };
 
         var unitLabel = new Label
@@ -137,13 +154,14 @@ public class DashboardPage : UserControl
             Font = new Font("Microsoft YaHei UI", 10f),
             ForeColor = Color.FromArgb(127, 140, 141),
             AutoSize = true,
-            Location = new Point(120, 50)
+            Location = new Point(12, 70),
+            BackColor = Color.Transparent
         };
 
-        labelPanel.Controls.Add(labelCtrl);
-        labelPanel.Controls.Add(valueLabel);
-        labelPanel.Controls.Add(unitLabel);
-        card.Controls.Add(labelPanel);
+        contentPanel.Controls.Add(labelCtrl);
+        contentPanel.Controls.Add(valueLabel);
+        contentPanel.Controls.Add(unitLabel);
+        card.Controls.Add(contentPanel);
 
         return card;
     }
