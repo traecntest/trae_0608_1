@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BioCAD.App/BioCAD.App.csproj" />
+    <Project Path="src/BioCAD.Data/BioCAD.Data.csproj" />
+    <Project Path="src/BioCAD.Domain/BioCAD.Domain.csproj" />
+    <Project Path="src/BioCAD.Engine/BioCAD.Engine.csproj" />
+    <Project Path="src/BioCAD.Visualization/BioCAD.Visualization.csproj" />
+  </Folder>
+</Solution>
