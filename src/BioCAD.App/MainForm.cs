@@ -17,6 +17,8 @@ public partial class MainForm : Form
 
     private void InitializeComponent()
     {
+        SuspendLayout();
+
         Text = "BioCAD - 生物计算与AI辅助药物研发平台";
         Width = 1400;
         Height = 900;
@@ -84,6 +86,14 @@ public partial class MainForm : Form
             Padding = new Padding(18)
         };
         Controls.Add(_contentPanel);
+
+        Controls.SetChildIndex(_contentPanel, 0);
+        Controls.SetChildIndex(statusBar, 1);
+        Controls.SetChildIndex(_sidebar, 2);
+        Controls.SetChildIndex(titleBar, 3);
+
+        ResumeLayout(false);
+        PerformLayout();
     }
 
     private void SetupNavigation()

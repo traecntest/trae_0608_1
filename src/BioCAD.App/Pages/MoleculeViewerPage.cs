@@ -1,5 +1,6 @@
 using BioCAD.Domain.Entities;
 using BioCAD.Visualization.Controls;
+using System.ComponentModel;
 
 namespace BioCAD.App.Pages;
 
@@ -10,6 +11,7 @@ public class MoleculeViewerPage : UserControl
     private TabControl? _viewerTabs;
     private ComboBox? _moleculeSelector;
     private PropertyGrid? _propertyGrid;
+    private Label? _molNameLabel;
 
     public MoleculeViewerPage()
     {
@@ -148,12 +150,35 @@ public class MoleculeViewerPage : UserControl
         };
         sidePanel.Controls.Add(infoTitle);
 
+        _molNameLabel = new Label
+        {
+            Text = "—",
+            Font = new Font("Microsoft YaHei UI", 14f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(52, 152, 219),
+            Dock = DockStyle.Top,
+            Height = 35,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Padding = new Padding(5, 0, 0, 0)
+        };
+        sidePanel.Controls.Add(_molNameLabel);
+
+        var separator = new Panel
+        {
+            Height = 1,
+            BackColor = Color.FromArgb(236, 240, 241),
+            Dock = DockStyle.Top
+        };
+        sidePanel.Controls.Add(separator);
+
         _propertyGrid = new PropertyGrid
         {
             Dock = DockStyle.Fill,
             BackColor = Color.White,
             ToolbarVisible = false,
-            PropertySort = PropertySort.Alphabetical
+            PropertySort = PropertySort.Categorized,
+            CategoryForeColor = Color.FromArgb(44, 62, 80),
+            HelpVisible = false,
+            LineColor = Color.FromArgb(236, 240, 241)
         };
         sidePanel.Controls.Add(_propertyGrid);
 
@@ -187,6 +212,7 @@ public class MoleculeViewerPage : UserControl
 
         if (_viewer2D != null) _viewer2D.Compound = compound;
         if (_viewer3D != null) _viewer3D.Compound = compound;
+        if (_molNameLabel != null) _molNameLabel.Text = selected;
         if (_propertyGrid != null) _propertyGrid.SelectedObject = new MoleculeProperties(compound);
     }
 
@@ -411,26 +437,55 @@ public class MoleculeViewerPage : UserControl
 
     private class MoleculeProperties
     {
+        [DisplayName("名称")]
+        [Category("基本信息")]
         public string Name { get; set; }
+
+        [DisplayName("分子式")]
+        [Category("基本信息")]
         public string Formula { get; set; }
+
+        [DisplayName("分子量")]
+        [Category("物理化学性质")]
         public double MolecularWeight { get; set; }
+
+        [DisplayName("原子数")]
+        [Category("结构信息")]
         public int AtomCount { get; set; }
+
+        [DisplayName("键数")]
+        [Category("结构信息")]
         public int BondCount { get; set; }
+
+        [DisplayName("LogP")]
+        [Category("物理化学性质")]
         public double LogP { get; set; }
+
+        [DisplayName("TPSA")]
+        [Category("物理化学性质")]
         public double TPSA { get; set; }
+
+        [DisplayName("氢键供体")]
+        [Category("物理化学性质")]
         public int HBD { get; set; }
+
+        [DisplayName("氢键受体")]
+        [Category("物理化学性质")]
         public int HBA { get; set; }
+
+        [DisplayName("可旋转键")]
+        [Category("结构信息")]
         public int RotatableBonds { get; set; }
 
         public MoleculeProperties(Compound compound)
         {
-            Name = compound.Name;
-            Formula = compound.Formula;
+            Name = compound.Name ?? "未知";
+            Formula = string.IsNullOrEmpty(compound.Formula) ? "—" : compound.Formula;
             MolecularWeight = compound.MolecularWeight;
             AtomCount = compound.Atoms.Count;
             BondCount = compound.Bonds.Count;
-            LogP = Math.Round(2.5 + new Random(compound.Name.GetHashCode()).NextDouble() * 2, 2);
-            TPSA = Math.Round(50 + new Random(compound.Name.GetHashCode()).NextDouble() * 80, 1);
+            LogP = Math.Round(2.5 + new Random(compound.Name?.GetHashCode() ?? 0).NextDouble() * 2, 2);
+            TPSA = Math.Round(50 + new Random(compound.Name?.GetHashCode() ?? 0).NextDouble() * 80, 1);
             HBD = 2;
             HBA = 4;
             RotatableBonds = 3;

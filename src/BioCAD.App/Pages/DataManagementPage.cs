@@ -11,6 +11,7 @@ public class DataManagementPage : UserControl
     private DataGridView? _proteinGrid;
     private DataGridView? _activityGrid;
     private MoleculeViewer2D? _previewViewer;
+    private Label? _detailInfoLabel;
 
     public DataManagementPage()
     {
@@ -122,6 +123,8 @@ public class DataManagementPage : UserControl
         genomicPage.Controls.Add(genomicGrid);
         _tabControl.TabPages.Add(genomicPage);
 
+        _tabControl.SelectedIndexChanged += (s, e) => OnTabChanged();
+
         splitContainer.Panel1.Controls.Add(_tabControl);
 
         var previewPanel = new Panel
@@ -152,7 +155,7 @@ public class DataManagementPage : UserControl
         var infoPanel = new Panel
         {
             Dock = DockStyle.Bottom,
-            Height = 150,
+            Height = 180,
             BackColor = Color.FromArgb(248, 249, 250),
             Padding = new Padding(10)
         };
@@ -163,18 +166,20 @@ public class DataManagementPage : UserControl
             Font = new Font("Microsoft YaHei UI", 10f, FontStyle.Bold),
             ForeColor = Color.FromArgb(44, 62, 80),
             Dock = DockStyle.Top,
-            Height = 25
+            Height = 28
         };
         infoPanel.Controls.Add(infoTitle);
 
-        var infoText = new Label
+        _detailInfoLabel = new Label
         {
             Text = "请选择一条记录查看详细信息",
             Dock = DockStyle.Fill,
-            ForeColor = Color.FromArgb(127, 140, 141),
-            TextAlign = ContentAlignment.TopLeft
+            ForeColor = Color.FromArgb(52, 73, 94),
+            TextAlign = ContentAlignment.TopLeft,
+            Font = new Font("Microsoft YaHei UI", 9f),
+            Padding = new Padding(0, 8, 0, 0)
         };
-        infoPanel.Controls.Add(infoText);
+        infoPanel.Controls.Add(_detailInfoLabel);
 
         previewPanel.Controls.Add(infoPanel);
 
@@ -301,6 +306,8 @@ public class DataManagementPage : UserControl
                     Math.Round(proteins[i].Item4 * 0.11, 1)
                 );
             }
+
+            _proteinGrid.SelectionChanged += (s, e) => UpdateProteinDetail();
         }
 
         if (_activityGrid != null)
@@ -324,20 +331,33 @@ public class DataManagementPage : UserControl
                     random.Next(2) == 0 ? "实验" : "文献"
                 );
             }
+
+            _activityGrid.SelectionChanged += (s, e) => UpdateActivityDetail();
         }
     }
 
     private void UpdateCompoundPreview()
     {
-        if (_compoundGrid == null || _previewViewer == null) return;
+        if (_compoundGrid == null || _previewViewer == null || _detailInfoLabel == null) return;
         if (_compoundGrid.SelectedRows.Count == 0) return;
+
+        var row = _compoundGrid.SelectedRows[0];
+        string name = row.Cells["Name"].Value?.ToString() ?? "";
+        string formula = row.Cells["Formula"].Value?.ToString() ?? "";
+        string mw = row.Cells["MolecularWeight"].Value?.ToString() ?? "";
+        string logp = row.Cells["LogP"].Value?.ToString() ?? "";
+        string tpsa = row.Cells["TPSA"].Value?.ToString() ?? "";
 
         var compound = new Compound
         {
-            Name = _compoundGrid.SelectedRows[0].Cells["Name"].Value?.ToString() ?? ""
+            Name = name,
+            Formula = formula,
+            MolecularWeight = double.TryParse(mw, out double mwVal) ? mwVal : 0,
+            LogP = double.TryParse(logp, out double logpVal) ? logpVal : 0,
+            TPSA = double.TryParse(tpsa, out double tpsaVal) ? tpsaVal : 0
         };
 
-        var random = new Random();
+        var random = new Random(name.GetHashCode());
         int atomCount = 15 + random.Next(15);
 
         for (int i = 0; i < atomCount; i++)
@@ -367,6 +387,87 @@ public class DataManagementPage : UserControl
         }
 
         _previewViewer.Compound = compound;
+
+        _detailInfoLabel.Text = 
+            $"名称: {name}\n" +
+            $"分子式: {formula}\n" +
+            $"分子量: {mw}\n" +
+            $"LogP: {logp}\n" +
+            $"TPSA: {tpsa}\n" +
+            $"原子数: {atomCount}\n" +
+            $"键数: {atomCount - 1}\n" +
+            $"来源: 示例数据库";
+    }
+
+    private void UpdateProteinDetail()
+    {
+        if (_proteinGrid == null || _detailInfoLabel == null || _previewViewer == null) return;
+        if (_proteinGrid.SelectedRows.Count == 0) return;
+
+        var row = _proteinGrid.SelectedRows[0];
+        string name = row.Cells["Name"].Value?.ToString() ?? "";
+        string gene = row.Cells["Gene"].Value?.ToString() ?? "";
+        string organism = row.Cells["Organism"].Value?.ToString() ?? "";
+        string length = row.Cells["Length"].Value?.ToString() ?? "";
+        string mw = row.Cells["MW"].Value?.ToString() ?? "";
+
+        _detailInfoLabel.Text = 
+            $"名称: {name}\n" +
+            $"基因名: {gene}\n" +
+            $"物种: {organism}\n" +
+            $"序列长度: {length} aa\n" +
+            $"分子量: {mw} kDa\n" +
+            $"来源: UniProtKB\n" +
+            $"状态: 已验证";
+
+        var compound = new Compound { Name = name };
+        _previewViewer.Compound = compound;
+    }
+
+    private void UpdateActivityDetail()
+    {
+        if (_activityGrid == null || _detailInfoLabel == null || _previewViewer == null) return;
+        if (_activityGrid.SelectedRows.Count == 0) return;
+
+        var row = _activityGrid.SelectedRows[0];
+        string compoundName = row.Cells["Compound"].Value?.ToString() ?? "";
+        string target = row.Cells["Target"].Value?.ToString() ?? "";
+        string type = row.Cells["Type"].Value?.ToString() ?? "";
+        string value = row.Cells["Value"].Value?.ToString() ?? "";
+        string source = row.Cells["Source"].Value?.ToString() ?? "";
+
+        _detailInfoLabel.Text = 
+            $"化合物: {compoundName}\n" +
+            $"靶标: {target}\n" +
+            $"实验类型: {type}\n" +
+            $"IC50: {value} nM\n" +
+            $"数据来源: {source}\n" +
+            $"测定方法: 荧光偏振\n" +
+            $"质量等级: A";
+
+        var compound = new Compound { Name = compoundName };
+        _previewViewer.Compound = compound;
+    }
+
+    private void OnTabChanged()
+    {
+        if (_tabControl == null || _detailInfoLabel == null) return;
+
+        switch (_tabControl.SelectedIndex)
+        {
+            case 0:
+                UpdateCompoundPreview();
+                break;
+            case 1:
+                UpdateProteinDetail();
+                break;
+            case 2:
+                UpdateActivityDetail();
+                break;
+            default:
+                _detailInfoLabel.Text = "请选择一条记录查看详细信息";
+                break;
+        }
     }
 
     private static void ImportData()
