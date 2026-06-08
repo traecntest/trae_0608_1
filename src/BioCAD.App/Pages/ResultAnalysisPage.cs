@@ -21,77 +21,6 @@ public class ResultAnalysisPage : UserControl
         BackColor = Color.FromArgb(245, 247, 250);
         Padding = new Padding(10);
 
-        var titlePanel = new Panel
-        {
-            Dock = DockStyle.Top,
-            Height = 60,
-            BackColor = Color.Transparent
-        };
-
-        var titleLabel = new Label
-        {
-            Text = "结果分析",
-            Font = new Font("Microsoft YaHei UI", 18f, FontStyle.Bold),
-            ForeColor = Color.FromArgb(44, 62, 80),
-            AutoSize = true,
-            Location = new Point(0, 5)
-        };
-        titlePanel.Controls.Add(titleLabel);
-
-        var subtitleLabel = new Label
-        {
-            Text = "可视化分析计算结果与数据",
-            Font = new Font("Microsoft YaHei UI", 9f),
-            ForeColor = Color.FromArgb(127, 140, 141),
-            AutoSize = true,
-            Location = new Point(0, 35)
-        };
-        titlePanel.Controls.Add(subtitleLabel);
-        Controls.Add(titlePanel);
-
-        var toolbar = new Panel
-        {
-            Dock = DockStyle.Top,
-            Height = 50,
-            BackColor = Color.White,
-            Padding = new Padding(10)
-        };
-
-        var resultLabel = new Label
-        {
-            Text = "选择结果:",
-            AutoSize = true,
-            Location = new Point(10, 15),
-            ForeColor = Color.FromArgb(52, 73, 94)
-        };
-        toolbar.Controls.Add(resultLabel);
-
-        _resultSelector = new ComboBox
-        {
-            Left = 90,
-            Top = 12,
-            Width = 250,
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
-        _resultSelector.Items.AddRange(new object[] {
-            "分子对接结果 - EGFR",
-            "虚拟筛选结果 - ZINC库",
-            "MD模拟轨迹分析",
-            "聚类分析结果",
-            "ROC曲线 - 预测模型"
-        });
-        _resultSelector.SelectedIndex = 0;
-        _resultSelector.SelectedIndexChanged += (s, e) => UpdateCharts();
-        toolbar.Controls.Add(_resultSelector);
-
-        var exportBtn = CreateButton("导出图表", Color.FromArgb(46, 204, 113), 360, 10);
-        toolbar.Controls.Add(exportBtn);
-
-        var reportBtn = CreateButton("生成报告", Color.FromArgb(155, 89, 182), 470, 10);
-        toolbar.Controls.Add(reportBtn);
-
-        Controls.Add(toolbar);
-
         _chartTabs = new TabControl
         {
             Dock = DockStyle.Fill,
@@ -169,7 +98,77 @@ public class ResultAnalysisPage : UserControl
         _chartTabs.TabPages.Add(clusteringTab);
         _chartTabs.TabPages.Add(rocTab);
 
+        var toolbar = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 50,
+            BackColor = Color.White,
+            Padding = new Padding(10)
+        };
+
+        var resultLabel = new Label
+        {
+            Text = "选择结果:",
+            AutoSize = true,
+            Location = new Point(10, 15),
+            ForeColor = Color.FromArgb(52, 73, 94)
+        };
+        toolbar.Controls.Add(resultLabel);
+
+        _resultSelector = new ComboBox
+        {
+            Left = 90,
+            Top = 12,
+            Width = 250,
+            DropDownStyle = ComboBoxStyle.DropDownList
+        };
+        _resultSelector.Items.AddRange(new object[] {
+            "分子对接结果 - EGFR",
+            "虚拟筛选结果 - ZINC库",
+            "MD模拟轨迹分析",
+            "聚类分析结果",
+            "ROC曲线 - 预测模型"
+        });
+        _resultSelector.SelectedIndex = 0;
+        _resultSelector.SelectedIndexChanged += (s, e) => UpdateCharts();
+        toolbar.Controls.Add(_resultSelector);
+
+        var exportBtn = CreateButton("导出图表", Color.FromArgb(46, 204, 113), 360, 10);
+        toolbar.Controls.Add(exportBtn);
+
+        var reportBtn = CreateButton("生成报告", Color.FromArgb(155, 89, 182), 470, 10);
+        toolbar.Controls.Add(reportBtn);
+
+        var titlePanel = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 65,
+            BackColor = Color.Transparent
+        };
+
+        var titleLabel = new Label
+        {
+            Text = "结果分析",
+            Font = new Font("Microsoft YaHei UI", 18f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(44, 62, 80),
+            AutoSize = true,
+            Location = new Point(0, 2)
+        };
+        titlePanel.Controls.Add(titleLabel);
+
+        var subtitleLabel = new Label
+        {
+            Text = "可视化分析计算结果与数据",
+            Font = new Font("Microsoft YaHei UI", 9f),
+            ForeColor = Color.FromArgb(127, 140, 141),
+            AutoSize = true,
+            Location = new Point(0, 38)
+        };
+        titlePanel.Controls.Add(subtitleLabel);
+
         Controls.Add(_chartTabs);
+        Controls.Add(toolbar);
+        Controls.Add(titlePanel);
 
         LoadDockingChartData(dockingChart);
         LoadScreeningChartData(screeningChart);

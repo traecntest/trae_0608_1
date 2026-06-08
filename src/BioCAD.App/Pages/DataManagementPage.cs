@@ -12,6 +12,11 @@ public class DataManagementPage : UserControl
     private DataGridView? _activityGrid;
     private MoleculeViewer2D? _previewViewer;
     private Label? _detailInfoLabel;
+    private TextBox? _searchBox;
+
+    private List<string[]> _compoundData = new();
+    private List<string[]> _proteinData = new();
+    private List<string[]> _activityData = new();
 
     public DataManagementPage()
     {
@@ -28,7 +33,7 @@ public class DataManagementPage : UserControl
         var titlePanel = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 60,
+            Height = 65,
             BackColor = Color.Transparent
         };
 
@@ -38,7 +43,7 @@ public class DataManagementPage : UserControl
             Font = new Font("Microsoft YaHei UI", 18f, FontStyle.Bold),
             ForeColor = Color.FromArgb(44, 62, 80),
             AutoSize = true,
-            Location = new Point(0, 5)
+            Location = new Point(0, 2)
         };
         titlePanel.Controls.Add(titleLabel);
 
@@ -48,10 +53,9 @@ public class DataManagementPage : UserControl
             Font = new Font("Microsoft YaHei UI", 9f),
             ForeColor = Color.FromArgb(127, 140, 141),
             AutoSize = true,
-            Location = new Point(0, 35)
+            Location = new Point(0, 38)
         };
         titlePanel.Controls.Add(subtitleLabel);
-        Controls.Add(titlePanel);
 
         var toolbar = new Panel
         {
@@ -75,7 +79,7 @@ public class DataManagementPage : UserControl
         var deleteBtn = CreateButton("删除选中", Color.FromArgb(231, 76, 60), 340, 8);
         toolbar.Controls.Add(deleteBtn);
 
-        var searchBox = new TextBox
+        _searchBox = new TextBox
         {
             Text = "  搜索...",
             Width = 250,
@@ -84,9 +88,24 @@ public class DataManagementPage : UserControl
             ForeColor = Color.Gray,
             Font = new Font("Microsoft YaHei UI", 9f)
         };
-        toolbar.Controls.Add(searchBox);
-
-        Controls.Add(toolbar);
+        _searchBox.Enter += (s, e) =>
+        {
+            if (_searchBox.Text == "  搜索...")
+            {
+                _searchBox.Text = "";
+                _searchBox.ForeColor = Color.FromArgb(52, 73, 94);
+            }
+        };
+        _searchBox.Leave += (s, e) =>
+        {
+            if (string.IsNullOrWhiteSpace(_searchBox.Text))
+            {
+                _searchBox.Text = "  搜索...";
+                _searchBox.ForeColor = Color.Gray;
+            }
+        };
+        _searchBox.TextChanged += (s, e) => ApplySearchFilter();
+        toolbar.Controls.Add(_searchBox);
 
         var splitContainer = new SplitContainer
         {
@@ -170,21 +189,32 @@ public class DataManagementPage : UserControl
         };
         infoPanel.Controls.Add(infoTitle);
 
+        var detailScrollPanel = new Panel
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true,
+            BackColor = Color.FromArgb(248, 249, 250)
+        };
+
         _detailInfoLabel = new Label
         {
             Text = "请选择一条记录查看详细信息",
-            Dock = DockStyle.Fill,
+            AutoSize = true,
             ForeColor = Color.FromArgb(52, 73, 94),
-            TextAlign = ContentAlignment.TopLeft,
             Font = new Font("Microsoft YaHei UI", 9f),
-            Padding = new Padding(0, 8, 0, 0)
+            Padding = new Padding(0, 5, 10, 10),
+            MaximumSize = new Size(260, 0)
         };
-        infoPanel.Controls.Add(_detailInfoLabel);
+        detailScrollPanel.Controls.Add(_detailInfoLabel);
+        infoPanel.Controls.Add(detailScrollPanel);
 
         previewPanel.Controls.Add(infoPanel);
 
         splitContainer.Panel2.Controls.Add(previewPanel);
+
         Controls.Add(splitContainer);
+        Controls.Add(toolbar);
+        Controls.Add(titlePanel);
     }
 
     private static Button CreateButton(string text, Color color, int x, int y)
@@ -259,16 +289,23 @@ public class DataManagementPage : UserControl
             var formulas = new[] { "C9H8O4", "C13H18O2", "C8H9NO2", "C14H11Cl2NO2", "C17H14F3N3O2S",
                 "C4H11N5", "C33H35FN2O5", "C17H19N3O3S", "C16H19N3O5S", "C21H31N3O5" };
 
+            _compoundData.Clear();
             for (int i = 0; i < 20; i++)
             {
-                _compoundGrid.Rows.Add(
-                    i + 1,
+                _compoundData.Add(new[]
+                {
+                    (i + 1).ToString(),
                     names[i % names.Length] + (i / names.Length > 0 ? $"_{i / names.Length}" : ""),
                     formulas[i % formulas.Length],
-                    Math.Round(150 + random.NextDouble() * 350, 2),
-                    Math.Round(-1 + random.NextDouble() * 6, 2),
-                    Math.Round(20 + random.NextDouble() * 120, 1)
-                );
+                    Math.Round(150 + random.NextDouble() * 350, 2).ToString(),
+                    Math.Round(-1 + random.NextDouble() * 6, 2).ToString(),
+                    Math.Round(20 + random.NextDouble() * 120, 1).ToString()
+                });
+            }
+
+            foreach (var row in _compoundData)
+            {
+                _compoundGrid.Rows.Add(row);
             }
 
             _compoundGrid.SelectionChanged += (s, e) => UpdateCompoundPreview();
@@ -295,16 +332,23 @@ public class DataManagementPage : UserControl
                 ("MYC", "MYC proto-oncogene", "Homo sapiens", 439)
             };
 
+            _proteinData.Clear();
             for (int i = 0; i < proteins.Length; i++)
             {
-                _proteinGrid.Rows.Add(
-                    i + 1,
+                _proteinData.Add(new[]
+                {
+                    (i + 1).ToString(),
                     proteins[i].Item1,
                     proteins[i].Item2,
                     proteins[i].Item3,
-                    proteins[i].Item4,
-                    Math.Round(proteins[i].Item4 * 0.11, 1)
-                );
+                    proteins[i].Item4.ToString(),
+                    Math.Round(proteins[i].Item4 * 0.11, 1).ToString()
+                });
+            }
+
+            foreach (var row in _proteinData)
+            {
+                _proteinGrid.Rows.Add(row);
             }
 
             _proteinGrid.SelectionChanged += (s, e) => UpdateProteinDetail();
@@ -320,19 +364,80 @@ public class DataManagementPage : UserControl
             _activityGrid.Columns.Add("Source", "来源");
 
             var random = new Random();
+            _activityData.Clear();
             for (int i = 0; i < 30; i++)
             {
-                _activityGrid.Rows.Add(
-                    i + 1,
+                _activityData.Add(new[]
+                {
+                    (i + 1).ToString(),
                     $"Compound_{i + 1}",
                     $"Target_{(i % 8) + 1}",
                     i % 3 == 0 ? "Binding" : i % 3 == 1 ? "Enzyme" : "Cell",
-                    Math.Round(1 + random.NextDouble() * 1000, 2),
+                    Math.Round(1 + random.NextDouble() * 1000, 2).ToString(),
                     random.Next(2) == 0 ? "实验" : "文献"
-                );
+                });
+            }
+
+            foreach (var row in _activityData)
+            {
+                _activityGrid.Rows.Add(row);
             }
 
             _activityGrid.SelectionChanged += (s, e) => UpdateActivityDetail();
+        }
+    }
+
+    private void ApplySearchFilter()
+    {
+        if (_searchBox == null || _tabControl == null) return;
+        string searchText = _searchBox.Text.Trim();
+        if (searchText == "搜索...") searchText = "";
+
+        switch (_tabControl.SelectedIndex)
+        {
+            case 0:
+                FilterGrid(_compoundGrid, _compoundData, searchText);
+                break;
+            case 1:
+                FilterGrid(_proteinGrid, _proteinData, searchText);
+                break;
+            case 2:
+                FilterGrid(_activityGrid, _activityData, searchText);
+                break;
+        }
+    }
+
+    private static void FilterGrid(DataGridView? grid, List<string[]> allData, string searchText)
+    {
+        if (grid == null) return;
+
+        grid.Rows.Clear();
+
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            foreach (var row in allData)
+            {
+                grid.Rows.Add(row);
+            }
+            return;
+        }
+
+        string lowerSearch = searchText.ToLower();
+        foreach (var row in allData)
+        {
+            bool match = false;
+            foreach (var cell in row)
+            {
+                if (cell != null && cell.ToLower().Contains(lowerSearch))
+                {
+                    match = true;
+                    break;
+                }
+            }
+            if (match)
+            {
+                grid.Rows.Add(row);
+            }
         }
     }
 

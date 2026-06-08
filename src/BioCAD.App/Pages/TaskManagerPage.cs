@@ -24,60 +24,6 @@ public class TaskManagerPage : UserControl
         BackColor = Color.FromArgb(245, 247, 250);
         Padding = new Padding(10);
 
-        var titlePanel = new Panel
-        {
-            Dock = DockStyle.Top,
-            Height = 60,
-            BackColor = Color.Transparent
-        };
-
-        var titleLabel = new Label
-        {
-            Text = "任务管理",
-            Font = new Font("Microsoft YaHei UI", 18f, FontStyle.Bold),
-            ForeColor = Color.FromArgb(44, 62, 80),
-            AutoSize = true,
-            Location = new Point(0, 5)
-        };
-        titlePanel.Controls.Add(titleLabel);
-
-        var subtitleLabel = new Label
-        {
-            Text = "管理和监控计算任务的执行",
-            Font = new Font("Microsoft YaHei UI", 9f),
-            ForeColor = Color.FromArgb(127, 140, 141),
-            AutoSize = true,
-            Location = new Point(0, 35)
-        };
-        titlePanel.Controls.Add(subtitleLabel);
-        Controls.Add(titlePanel);
-
-        var toolbar = new Panel
-        {
-            Dock = DockStyle.Top,
-            Height = 50,
-            BackColor = Color.White,
-            Padding = new Padding(10)
-        };
-
-        var newTaskBtn = CreateButton("新建任务", Color.FromArgb(52, 152, 219), 10, 10);
-        newTaskBtn.Click += (s, e) => ShowNewTaskDialog();
-        toolbar.Controls.Add(newTaskBtn);
-
-        var startBtn = CreateButton("开始", Color.FromArgb(46, 204, 113), 120, 10);
-        toolbar.Controls.Add(startBtn);
-
-        var pauseBtn = CreateButton("暂停", Color.FromArgb(241, 196, 15), 230, 10);
-        toolbar.Controls.Add(pauseBtn);
-
-        var cancelBtn = CreateButton("取消", Color.FromArgb(231, 76, 60), 340, 10);
-        toolbar.Controls.Add(cancelBtn);
-
-        var deleteBtn = CreateButton("删除", Color.FromArgb(127, 140, 141), 450, 10);
-        toolbar.Controls.Add(deleteBtn);
-
-        Controls.Add(toolbar);
-
         var splitContainer = new SplitContainer
         {
             Dock = DockStyle.Fill,
@@ -210,7 +156,61 @@ public class TaskManagerPage : UserControl
         _detailPanel.Controls.Add(_logTextBox);
 
         splitContainer.Panel2.Controls.Add(_detailPanel);
+
+        var toolbar = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 50,
+            BackColor = Color.White,
+            Padding = new Padding(10)
+        };
+
+        var newTaskBtn = CreateButton("新建任务", Color.FromArgb(52, 152, 219), 10, 10);
+        newTaskBtn.Click += (s, e) => ShowNewTaskDialog();
+        toolbar.Controls.Add(newTaskBtn);
+
+        var startBtn = CreateButton("开始", Color.FromArgb(46, 204, 113), 120, 10);
+        toolbar.Controls.Add(startBtn);
+
+        var pauseBtn = CreateButton("暂停", Color.FromArgb(241, 196, 15), 230, 10);
+        toolbar.Controls.Add(pauseBtn);
+
+        var cancelBtn = CreateButton("取消", Color.FromArgb(231, 76, 60), 340, 10);
+        toolbar.Controls.Add(cancelBtn);
+
+        var deleteBtn = CreateButton("删除", Color.FromArgb(127, 140, 141), 450, 10);
+        toolbar.Controls.Add(deleteBtn);
+
+        var titlePanel = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 65,
+            BackColor = Color.Transparent
+        };
+
+        var titleLabel = new Label
+        {
+            Text = "任务管理",
+            Font = new Font("Microsoft YaHei UI", 18f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(44, 62, 80),
+            AutoSize = true,
+            Location = new Point(0, 2)
+        };
+        titlePanel.Controls.Add(titleLabel);
+
+        var subtitleLabel = new Label
+        {
+            Text = "管理和监控计算任务的执行",
+            Font = new Font("Microsoft YaHei UI", 9f),
+            ForeColor = Color.FromArgb(127, 140, 141),
+            AutoSize = true,
+            Location = new Point(0, 38)
+        };
+        titlePanel.Controls.Add(subtitleLabel);
+
         Controls.Add(splitContainer);
+        Controls.Add(toolbar);
+        Controls.Add(titlePanel);
     }
 
     private static Button CreateButton(string text, Color color, int x, int y)

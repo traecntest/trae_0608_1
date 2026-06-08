@@ -51,7 +51,6 @@ public class MoleculeViewerPage : UserControl
             Location = new Point(0, 35)
         };
         titlePanel.Controls.Add(subtitleLabel);
-        Controls.Add(titlePanel);
 
         var toolbar = new Panel
         {
@@ -93,8 +92,6 @@ public class MoleculeViewerPage : UserControl
         _moleculeSelector.SelectedIndex = 2;
         _moleculeSelector.SelectedIndexChanged += (s, e) => LoadSampleMolecule();
         toolbar.Controls.Add(_moleculeSelector);
-
-        Controls.Add(toolbar);
 
         var splitContainer = new SplitContainer
         {
@@ -183,7 +180,10 @@ public class MoleculeViewerPage : UserControl
         sidePanel.Controls.Add(_propertyGrid);
 
         splitContainer.Panel2.Controls.Add(sidePanel);
+
         Controls.Add(splitContainer);
+        Controls.Add(toolbar);
+        Controls.Add(titlePanel);
     }
 
     private static Button CreateButton(string text, Color color, int x, int y)

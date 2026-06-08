@@ -21,53 +21,18 @@ public class DashboardPage : UserControl
             BackColor = Color.Transparent
         };
 
-        var headerPanel = new Panel
+        var recentPanel = CreateCard("最近计算任务", 0, 0, 980, 310);
+        FillRecentTasks(recentPanel);
+
+        var recentWrapper = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 60,
-            BackColor = Color.Transparent
-        };
-
-        var titleLabel = new Label
-        {
-            Text = "仪表盘",
-            Font = new Font("Microsoft YaHei UI", 20f, FontStyle.Bold),
-            ForeColor = Color.FromArgb(44, 62, 80),
-            AutoSize = true,
-            Location = new Point(5, 5),
-            BackColor = Color.Transparent
-        };
-        headerPanel.Controls.Add(titleLabel);
-
-        var subtitleLabel = new Label
-        {
-            Text = "系统概览与快速统计",
-            Font = new Font("Microsoft YaHei UI", 10f),
-            ForeColor = Color.FromArgb(127, 140, 141),
-            AutoSize = true,
-            Location = new Point(5, 38),
-            BackColor = Color.Transparent
-        };
-        headerPanel.Controls.Add(subtitleLabel);
-
-        mainPanel.Controls.Add(headerPanel);
-
-        var statsPanel = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Top,
-            Height = 110,
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = true,
+            Height = 320,
             BackColor = Color.Transparent,
-            Padding = new Padding(0, 10, 0, 0)
+            Padding = new Padding(0, 15, 0, 0)
         };
-
-        statsPanel.Controls.Add(CreateStatCard("化合物", "1,234", "个", Color.FromArgb(52, 152, 219)));
-        statsPanel.Controls.Add(CreateStatCard("蛋白质", "86", "个", Color.FromArgb(46, 204, 113)));
-        statsPanel.Controls.Add(CreateStatCard("活性数据", "5,678", "条", Color.FromArgb(230, 126, 34)));
-        statsPanel.Controls.Add(CreateStatCard("计算任务", "23", "个", Color.FromArgb(155, 89, 182)));
-
-        mainPanel.Controls.Add(statsPanel);
+        recentWrapper.Controls.Add(recentPanel);
+        mainPanel.Controls.Add(recentWrapper);
 
         var chartsPanel = new Panel
         {
@@ -87,18 +52,53 @@ public class DashboardPage : UserControl
 
         mainPanel.Controls.Add(chartsPanel);
 
-        var recentPanel = CreateCard("最近计算任务", 0, 0, 980, 310);
-        FillRecentTasks(recentPanel);
-
-        var recentWrapper = new Panel
+        var statsPanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 320,
+            Height = 110,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true,
             BackColor = Color.Transparent,
-            Padding = new Padding(0, 15, 0, 0)
+            Padding = new Padding(0, 10, 0, 0)
         };
-        recentWrapper.Controls.Add(recentPanel);
-        mainPanel.Controls.Add(recentWrapper);
+
+        statsPanel.Controls.Add(CreateStatCard("化合物", "1,234", "个", Color.FromArgb(52, 152, 219)));
+        statsPanel.Controls.Add(CreateStatCard("蛋白质", "86", "个", Color.FromArgb(46, 204, 113)));
+        statsPanel.Controls.Add(CreateStatCard("活性数据", "5,678", "条", Color.FromArgb(230, 126, 34)));
+        statsPanel.Controls.Add(CreateStatCard("计算任务", "23", "个", Color.FromArgb(155, 89, 182)));
+
+        mainPanel.Controls.Add(statsPanel);
+
+        var headerPanel = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 65,
+            BackColor = Color.Transparent
+        };
+
+        var titleLabel = new Label
+        {
+            Text = "仪表盘",
+            Font = new Font("Microsoft YaHei UI", 20f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(44, 62, 80),
+            AutoSize = true,
+            Location = new Point(5, 2),
+            BackColor = Color.Transparent
+        };
+        headerPanel.Controls.Add(titleLabel);
+
+        var subtitleLabel = new Label
+        {
+            Text = "系统概览与快速统计",
+            Font = new Font("Microsoft YaHei UI", 10f),
+            ForeColor = Color.FromArgb(127, 140, 141),
+            AutoSize = true,
+            Location = new Point(5, 40),
+            BackColor = Color.Transparent
+        };
+        headerPanel.Controls.Add(subtitleLabel);
+
+        mainPanel.Controls.Add(headerPanel);
 
         Controls.Add(mainPanel);
     }
