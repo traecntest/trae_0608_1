@@ -11,6 +11,9 @@ public class TaskManagerPage : UserControl
     private RichTextBox? _logTextBox;
     private System.Windows.Forms.Timer? _refreshTimer;
 
+    private readonly List<TaskItem> _tasks = new();
+    private int _nextTaskId = 11;
+
     public TaskManagerPage()
     {
         InitializeComponent();
@@ -170,15 +173,19 @@ public class TaskManagerPage : UserControl
         toolbar.Controls.Add(newTaskBtn);
 
         var startBtn = CreateButton("开始", Color.FromArgb(46, 204, 113), 120, 10);
+        startBtn.Click += (s, e) => StartSelectedTask();
         toolbar.Controls.Add(startBtn);
 
         var pauseBtn = CreateButton("暂停", Color.FromArgb(241, 196, 15), 230, 10);
+        pauseBtn.Click += (s, e) => PauseSelectedTask();
         toolbar.Controls.Add(pauseBtn);
 
         var cancelBtn = CreateButton("取消", Color.FromArgb(231, 76, 60), 340, 10);
+        cancelBtn.Click += (s, e) => CancelSelectedTask();
         toolbar.Controls.Add(cancelBtn);
 
         var deleteBtn = CreateButton("删除", Color.FromArgb(127, 140, 141), 450, 10);
+        deleteBtn.Click += (s, e) => DeleteSelectedTask();
         toolbar.Controls.Add(deleteBtn);
 
         var titlePanel = new Panel
@@ -234,24 +241,35 @@ public class TaskManagerPage : UserControl
     {
         if (_taskGrid == null) return;
 
-        var tasks = new[]
+        _tasks.Clear();
+        _tasks.AddRange(new[]
         {
-            new { Id = 1, Name = "分子对接 - EGFR & Gefitinib", Type = "分子对接", Status = TaskStatus.Completed, Progress = 100, Priority = 5, CreatedAt = DateTime.Now.AddDays(-2).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 2, Name = "虚拟筛选 - ZINC库 10k", Type = "虚拟筛选", Status = TaskStatus.Running, Progress = 65, Priority = 7, CreatedAt = DateTime.Now.AddHours(-3).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 3, Name = "药效团模型构建", Type = "药效团建模", Status = TaskStatus.Completed, Progress = 100, Priority = 4, CreatedAt = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 4, Name = "MD模拟 - 10ns", Type = "分子动力学", Status = TaskStatus.Running, Progress = 32, Priority = 8, CreatedAt = DateTime.Now.AddHours(-8).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 5, Name = "化合物聚类分析", Type = "聚类分析", Status = TaskStatus.Completed, Progress = 100, Priority = 3, CreatedAt = DateTime.Now.AddDays(-3).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 6, Name = "QSAR模型训练", Type = "AI模型", Status = TaskStatus.Failed, Progress = 45, Priority = 6, CreatedAt = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 7, Name = "批量分子对接", Type = "分子对接", Status = TaskStatus.Queued, Progress = 0, Priority = 5, CreatedAt = DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 8, Name = "MD轨迹分析", Type = "数据分析", Status = TaskStatus.Pending, Progress = 0, Priority = 4, CreatedAt = DateTime.Now.AddMinutes(-30).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 9, Name = "ADMET性质预测", Type = "AI模型", Status = TaskStatus.Queued, Progress = 0, Priority = 6, CreatedAt = DateTime.Now.AddMinutes(-15).ToString("yyyy-MM-dd HH:mm") },
-            new { Id = 10, Name = "虚拟筛选 - Enamine库", Type = "虚拟筛选", Status = TaskStatus.Paused, Progress = 28, Priority = 5, CreatedAt = DateTime.Now.AddHours(-5).ToString("yyyy-MM-dd HH:mm") }
-        };
+            new TaskItem { Id = 1, Name = "分子对接 - EGFR & Gefitinib", Type = "分子对接", Status = TaskStatus.Completed, Progress = 100, Priority = 5, CreatedAt = DateTime.Now.AddDays(-2) },
+            new TaskItem { Id = 2, Name = "虚拟筛选 - ZINC库 10k", Type = "虚拟筛选", Status = TaskStatus.Running, Progress = 65, Priority = 7, CreatedAt = DateTime.Now.AddHours(-3) },
+            new TaskItem { Id = 3, Name = "药效团模型构建", Type = "药效团建模", Status = TaskStatus.Completed, Progress = 100, Priority = 4, CreatedAt = DateTime.Now.AddDays(-1) },
+            new TaskItem { Id = 4, Name = "MD模拟 - 10ns", Type = "分子动力学", Status = TaskStatus.Running, Progress = 32, Priority = 8, CreatedAt = DateTime.Now.AddHours(-8) },
+            new TaskItem { Id = 5, Name = "化合物聚类分析", Type = "聚类分析", Status = TaskStatus.Completed, Progress = 100, Priority = 3, CreatedAt = DateTime.Now.AddDays(-3) },
+            new TaskItem { Id = 6, Name = "QSAR模型训练", Type = "AI模型", Status = TaskStatus.Failed, Progress = 45, Priority = 6, CreatedAt = DateTime.Now.AddDays(-1) },
+            new TaskItem { Id = 7, Name = "批量分子对接", Type = "分子对接", Status = TaskStatus.Queued, Progress = 0, Priority = 5, CreatedAt = DateTime.Now.AddHours(-1) },
+            new TaskItem { Id = 8, Name = "MD轨迹分析", Type = "数据分析", Status = TaskStatus.Pending, Progress = 0, Priority = 4, CreatedAt = DateTime.Now.AddMinutes(-30) },
+            new TaskItem { Id = 9, Name = "ADMET性质预测", Type = "AI模型", Status = TaskStatus.Queued, Progress = 0, Priority = 6, CreatedAt = DateTime.Now.AddMinutes(-15) },
+            new TaskItem { Id = 10, Name = "虚拟筛选 - Enamine库", Type = "虚拟筛选", Status = TaskStatus.Paused, Progress = 28, Priority = 5, CreatedAt = DateTime.Now.AddHours(-5) }
+        });
 
-        foreach (var task in tasks)
+        _nextTaskId = 11;
+        RefreshGrid();
+        _taskGrid.AutoResizeColumns();
+    }
+
+    private void RefreshGrid()
+    {
+        if (_taskGrid == null) return;
+
+        _taskGrid.Rows.Clear();
+        foreach (var task in _tasks)
         {
             int idx = _taskGrid.Rows.Add(task.Id, task.Name, task.Type, task.Status, task.Progress + "%",
-                new string('★', task.Priority), task.CreatedAt);
+                new string('★', task.Priority), task.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
 
             var row = _taskGrid.Rows[idx];
             var statusCell = row.Cells["Status"];
@@ -260,8 +278,6 @@ public class TaskManagerPage : UserControl
             statusCell.Style.SelectionBackColor = GetStatusColor(task.Status);
             statusCell.Style.Padding = new Padding(5);
         }
-
-        _taskGrid.AutoResizeColumns();
     }
 
     private static Color GetStatusColor(TaskStatus status)
@@ -284,26 +300,43 @@ public class TaskManagerPage : UserControl
         if (_taskGrid == null || _taskGrid.SelectedRows.Count == 0) return;
         if (_logTextBox == null || _taskProgress == null) return;
 
-        var taskName = _taskGrid.SelectedRows[0].Cells["Name"].Value?.ToString() ?? "";
-        var progressStr = _taskGrid.SelectedRows[0].Cells["Progress"].Value?.ToString() ?? "0%";
-        var status = _taskGrid.SelectedRows[0].Cells["Status"].Value?.ToString() ?? "Pending";
+        var taskIdCell = _taskGrid.SelectedRows[0].Cells["Id"].Value;
+        if (taskIdCell == null || !int.TryParse(taskIdCell.ToString(), out int taskId)) return;
 
-        if (int.TryParse(progressStr.TrimEnd('%'), out int progress))
-        {
-            _taskProgress.Value = progress;
-        }
+        var task = _tasks.FirstOrDefault(t => t.Id == taskId);
+        if (task == null) return;
+
+        _taskProgress.Value = task.Progress;
 
         _logTextBox.Clear();
-        _logTextBox.AppendText($"任务: {taskName}\n");
-        _logTextBox.AppendText($"状态: {status}\n");
-        _logTextBox.AppendText($"进度: {progressStr}\n\n");
+        _logTextBox.AppendText($"任务: {task.Name}\n");
+        _logTextBox.AppendText($"状态: {task.Status}\n");
+        _logTextBox.AppendText($"进度: {task.Progress}%\n\n");
         _logTextBox.AppendText("=== 执行日志 ===\n");
-        _logTextBox.AppendText($"[{DateTime.Now.AddHours(-3):HH:mm:ss}] INFO: 任务启动\n");
-        _logTextBox.AppendText($"[{DateTime.Now.AddHours(-2.5):HH:mm:ss}] INFO: 初始化计算环境\n");
-        _logTextBox.AppendText($"[{DateTime.Now.AddHours(-2):HH:mm:ss}] INFO: 加载输入数据\n");
-        _logTextBox.AppendText($"[{DateTime.Now.AddHours(-1.5):HH:mm:ss}] INFO: 开始计算\n");
-        _logTextBox.AppendText($"[{DateTime.Now.AddHours(-1):HH:mm:ss}] INFO: 计算中... ({progressStr})\n");
-        _logTextBox.AppendText($"[{DateTime.Now:HH:mm:ss}] INFO: 当前步骤: 分析结果\n");
+        _logTextBox.AppendText($"[{task.CreatedAt:HH:mm:ss}] INFO: 任务创建\n");
+        _logTextBox.AppendText($"[{task.CreatedAt.AddMinutes(5):HH:mm:ss}] INFO: 初始化计算环境\n");
+        _logTextBox.AppendText($"[{task.CreatedAt.AddMinutes(10):HH:mm:ss}] INFO: 加载输入数据\n");
+        if (task.Progress > 0)
+        {
+            _logTextBox.AppendText($"[{task.CreatedAt.AddMinutes(15):HH:mm:ss}] INFO: 开始计算\n");
+            _logTextBox.AppendText($"[{DateTime.Now:HH:mm:ss}] INFO: 计算中... ({task.Progress}%)\n");
+        }
+        if (task.Status == TaskStatus.Completed)
+        {
+            _logTextBox.AppendText($"[{task.CreatedAt.AddHours(2):HH:mm:ss}] INFO: 任务完成\n");
+        }
+        else if (task.Status == TaskStatus.Failed)
+        {
+            _logTextBox.AppendText($"[{task.CreatedAt.AddHours(1):HH:mm:ss}] ERROR: 计算失败 - 参数错误\n");
+        }
+        else if (task.Status == TaskStatus.Cancelled)
+        {
+            _logTextBox.AppendText($"[{task.CreatedAt.AddMinutes(30):HH:mm:ss}] WARN: 任务已取消\n");
+        }
+        else if (task.Status == TaskStatus.Paused)
+        {
+            _logTextBox.AppendText($"[{DateTime.Now:HH:mm:ss}] WARN: 任务已暂停\n");
+        }
     }
 
     private void StartRefreshTimer()
@@ -317,30 +350,45 @@ public class TaskManagerPage : UserControl
     {
         if (_taskGrid == null) return;
 
-        foreach (DataGridViewRow row in _taskGrid.Rows)
+        bool hasChanges = false;
+        foreach (var task in _tasks)
         {
-            var statusCell = row.Cells["Status"];
-            if (statusCell.Value?.ToString() == "Running")
+            if (task.Status == TaskStatus.Running)
             {
-                var progressStr = row.Cells["Progress"].Value?.ToString() ?? "0%";
-                if (int.TryParse(progressStr.TrimEnd('%'), out int progress))
+                task.Progress = Math.Min(100, task.Progress + 1);
+                if (task.Progress >= 100)
                 {
-                    progress = Math.Min(100, progress + 1);
-                    row.Cells["Progress"].Value = progress + "%";
+                    task.Status = TaskStatus.Completed;
+                }
+                hasChanges = true;
+            }
+        }
 
-                    if (progress >= 100)
+        if (hasChanges)
+        {
+            var selectedId = -1;
+            if (_taskGrid.SelectedRows.Count > 0 && _taskGrid.SelectedRows[0].Cells["Id"].Value != null)
+            {
+                int.TryParse(_taskGrid.SelectedRows[0].Cells["Id"].Value.ToString(), out selectedId);
+            }
+
+            RefreshGrid();
+
+            if (selectedId > 0)
+            {
+                foreach (DataGridViewRow row in _taskGrid.Rows)
+                {
+                    if (row.Cells["Id"].Value?.ToString() == selectedId.ToString())
                     {
-                        row.Cells["Status"].Value = "Completed";
-                        statusCell.Style.BackColor = Color.FromArgb(46, 204, 113);
-                        statusCell.Style.ForeColor = Color.White;
-                        statusCell.Style.SelectionBackColor = Color.FromArgb(46, 204, 113);
+                        row.Selected = true;
+                        break;
                     }
                 }
             }
         }
     }
 
-    private static void ShowNewTaskDialog()
+    private void ShowNewTaskDialog()
     {
         using var dialog = new Form
         {
@@ -425,7 +473,117 @@ public class TaskManagerPage : UserControl
 
         if (dialog.ShowDialog() == DialogResult.OK)
         {
+            var newTask = new TaskItem
+            {
+                Id = _nextTaskId++,
+                Name = nameTextBox.Text,
+                Type = taskTypeCombo.SelectedItem?.ToString() ?? "未知",
+                Status = TaskStatus.Queued,
+                Progress = 0,
+                Priority = priorityTrackBar.Value,
+                CreatedAt = DateTime.Now
+            };
+
+            _tasks.Insert(0, newTask);
+            RefreshGrid();
+
+            if (_taskGrid != null && _taskGrid.Rows.Count > 0)
+            {
+                _taskGrid.Rows[0].Selected = true;
+            }
+
+            UpdateTaskDetail();
             MessageBox.Show("任务已提交到队列", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+
+    private TaskItem? GetSelectedTask()
+    {
+        if (_taskGrid == null || _taskGrid.SelectedRows.Count == 0) return null;
+        var idCell = _taskGrid.SelectedRows[0].Cells["Id"].Value;
+        if (idCell == null || !int.TryParse(idCell.ToString(), out int id)) return null;
+        return _tasks.FirstOrDefault(t => t.Id == id);
+    }
+
+    private void StartSelectedTask()
+    {
+        var task = GetSelectedTask();
+        if (task == null)
+        {
+            MessageBox.Show("请先选择一个任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (task.Status is TaskStatus.Running or TaskStatus.Completed)
+        {
+            MessageBox.Show("该任务无法开始", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        task.Status = TaskStatus.Running;
+        RefreshGrid();
+        UpdateTaskDetail();
+    }
+
+    private void PauseSelectedTask()
+    {
+        var task = GetSelectedTask();
+        if (task == null)
+        {
+            MessageBox.Show("请先选择一个任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (task.Status != TaskStatus.Running)
+        {
+            MessageBox.Show("只有运行中的任务才能暂停", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        task.Status = TaskStatus.Paused;
+        RefreshGrid();
+        UpdateTaskDetail();
+    }
+
+    private void CancelSelectedTask()
+    {
+        var task = GetSelectedTask();
+        if (task == null)
+        {
+            MessageBox.Show("请先选择一个任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (task.Status is TaskStatus.Completed or TaskStatus.Cancelled or TaskStatus.Failed)
+        {
+            MessageBox.Show("该任务无法取消", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var result = MessageBox.Show("确定要取消该任务吗？", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (result == DialogResult.Yes)
+        {
+            task.Status = TaskStatus.Cancelled;
+            RefreshGrid();
+            UpdateTaskDetail();
+        }
+    }
+
+    private void DeleteSelectedTask()
+    {
+        var task = GetSelectedTask();
+        if (task == null)
+        {
+            MessageBox.Show("请先选择一个任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var result = MessageBox.Show("确定要删除该任务吗？", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (result == DialogResult.Yes)
+        {
+            _tasks.Remove(task);
+            RefreshGrid();
+            UpdateTaskDetail();
         }
     }
 
@@ -435,4 +593,15 @@ public class TaskManagerPage : UserControl
         _refreshTimer?.Dispose();
         base.OnHandleDestroyed(e);
     }
+}
+
+public class TaskItem
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public TaskStatus Status { get; set; }
+    public int Progress { get; set; }
+    public int Priority { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
